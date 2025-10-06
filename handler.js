@@ -1771,72 +1771,7 @@ return list[Math.floor(Math.random() * list.length)]
 }
 }
 
-/**
- * Handle groups participants update
- * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate
- */
 
-
-if (chat.antifake && isBotAdminNn && action === 'add') {
-const prefijosPredeterminados = [2, 4, 6, 7, 8, 9]
-let prefijos =
-(Array.isArray(chat.sCondition) && chat.sCondition.length > 0) || chat.sCondition !== '' ? chat.sCondition : prefijosPredeterminados
-const comienzaConPrefijo = prefijos.some((prefijo) => user.startsWith(`+${prefijo}`))
-if (comienzaConPrefijo) {
-let texto = mid.mAdvertencia + mid.mFake2(user)
-await conn.sendMessage(id, {text: texto, mentions: [user]})
-if (m.key.participant && m.key.id) {
-await conn.sendMessage(id, {
-delete: {
-remoteJid: m.chat,
-fromMe: false,
-id: m.key.id,
-participant: m.key.participant
-}
-})
-}
-}
-}
-
-let fkontak2 = {
-key: {
-participants: '0@s.whatsapp.net',
-remoteJid: 'status@broadcast',
-fromMe: false,
-id: 'Halo'
-},
-message: {
-contactMessage: {
-vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${user.split('@')[0]}:${user.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-}
-},
-participant: '0@s.whatsapp.net'
-}
-this.sendMessage(
-id,
-{
-text: text,
-contextInfo: {
-forwardingScore: 9999999,
-isForwarded: true,
-mentionedJid: [user],
-externalAdReply: {
-showAdAttribution: true,
-renderLargerThumbnail: true,
-thumbnail: apii.data,
-title: [wm, '😻 𝗦𝘂𝗽𝗲𝗿 ' + gt + ' 😻', '🌟 centergatabot.gmail.com'].getRandom(),
-containsAutoReply: true,
-mediaType: 1,
-sourceUrl: 'https://github.com/GataNina-Li/GataBot-MD'
-}
-}
-},
-{quoted: fkontak2}
-)
-apii.data = ''
-}
-}
-}
 
 break
 case 'promote':
