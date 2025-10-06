@@ -170,18 +170,16 @@ if (connection === 'close') {
 if (reason === 428) {
 if (reconnectAttempts < maxAttempts) {
 const delay = 1000 * Math.pow(2, reconnectAttempts); 
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathGataJadiBot)}) fue cerrada inesperadamente. Intentando reconectar en ${delay / 1000} segundos... (Intento ${reconnectAttempts + 1}/${maxAttempts})\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nLa conexión (+${path.basename(pathGataJadiBot)}) fue cerrada inesperadamente. Intentando reconectar en ${delay / 1000} segundos... (Intento ${reconnectAttempts + 1}/${maxAttempts})`))
 await sleep(1000);
 reconnectAttempts++;
 await creloadHandler(true).catch(console.error);
 } else {
 console.log(chalk.redBright(`Sub-bot (+${path.basename(pathGataJadiBot)}) agotó intentos de reconexión. intentando más tardes...`));
 }            
-/*console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathGataJadiBot)}) fue cerrada inesperadamente. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-await creloadHandler(true).catch(console.error)*/
 }
 if (reason === 408) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathGataJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nLa conexión (+${path.basename(pathGataJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...`))
 try {
 if (options.fromCommand && m?.chat) {
 await conn.sendMessage(m.chat, {text : '*CONEXIÓN EXPIRADA*\n\n> *ESPERANDO 15 SEGUNDOS PARA RECONECTAR*' }, { quoted: m })
@@ -193,7 +191,7 @@ console.error(chalk.bold.yellow(`Error al reconectar: +${path.basename(pathGataJ
 }
 }
 if (reason === 440) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathGataJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nLa conexión (+${path.basename(pathGataJadiBot)}) fue reemplazada por otra sesión activa.`))
 try {
 if (options.fromCommand && m?.chat) {
 await conn.sendMessage(m.chat, {text : '*SESIÓN PENDIENTE*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*' }, { quoted: m })
@@ -207,7 +205,7 @@ const currentTime = Date.now();
 const timeSinceLastError = currentTime - lastErrorTime;
 
 if (timeSinceLastError > 30000) { // Solo intentar reconectar si han pasado 30 segundos desde el último error
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathGataJadiBot)}) fue cerrada. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nLa sesión (+${path.basename(pathGataJadiBot)}) fue cerrada. Intentando reconectar...`))
 try {
 if (options.fromCommand) {
 await creloadHandler(true).catch(console.error)
@@ -226,7 +224,7 @@ console.error(chalk.bold.yellow(`Error al eliminar directorio: ${e.message}`))
 }
 }
 if (reason === 500) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathGataJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nConexión perdida en la sesión (+${path.basename(pathGataJadiBot)}). Borrando datos...`))
 
 if (options.fromCommand) {
 m?.chat ? await conn.sendMessage(m.chat, {text: '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
@@ -234,11 +232,11 @@ m?.chat ? await conn.sendMessage(m.chat, {text: '*CONEXIÓN PÉRDIDA*\n\n> *INTE
 //fs.rmdirSync(pathGataJadiBot, { recursive: true })
 }
 if (reason === 515) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathGataJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nReinicio automático para la sesión (+${path.basename(pathGataJadiBot)}).`))
 await creloadHandler(true).catch(console.error)
 }
 if (reason === 403) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathGataJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+console.log(chalk.bold.magentaBright(`\nSesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathGataJadiBot)}).`))
 fs.rmdirSync(pathGataJadiBot, { recursive: true })
 }}
 
@@ -258,7 +256,7 @@ jadibotmd: true
 let userName, userJid 
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathGataJadiBot)}@s.whatsapp.net`
-console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathGataJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺【• CONECTADO •】⸺⸺⸺❒`))
+console.log(chalk.bold.cyanBright(`🟢 ${userName} (+${path.basename(pathGataJadiBot)}) conectado exitosamente.`))
 sock.isInit = true
 global.conns.push(sock)
 
@@ -373,13 +371,13 @@ async function checkSubBots() {
         fs.statSync(path.join(subBotDir, folder)).isDirectory()
     );
 
-    console.log(chalk.bold.cyanBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Iniciando reinicio forzado de sub-bots...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`));
+    console.log(chalk.bold.cyanBright(`\nIniciando reinicio forzado de sub-bots...`));
 
     // Primero desconectamos todos los sub-bots existentes
     for (const conn of global.conns) {
         if (conn && conn.ws) {
             try {
-                console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Desconectando sub-bot (+${conn.user?.jid?.split('@')[0] || 'unknown'})...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`));
+                console.log(chalk.bold.yellowBright(`\nDesconectando sub-bot (+${conn.user?.jid?.split('@')[0] || 'unknown'})...`));
                 conn.ws.close();
                 conn.ev.removeAllListeners();
             } catch (e) {
@@ -395,12 +393,12 @@ async function checkSubBots() {
         const credsPath = path.join(pathGataJadiBot, "creds.json");
 
         if (!fs.existsSync(credsPath)) {
-            console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) no tiene creds.json. Omitiendo...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`));
+            console.log(chalk.bold.yellowBright(`\nSub-bot (+${folder}) no tiene creds.json. Omitiendo...`));
             continue;
         }
 
         try {
-            console.log(chalk.bold.greenBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reconectando sub-bot (+${folder})...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`));
+            console.log(chalk.bold.greenBright(`\nReconectando sub-bot (+${folder})...`));
             await gataJadiBot({
                 pathGataJadiBot,
                 m: null,
@@ -410,11 +408,11 @@ async function checkSubBots() {
                 command: 'jadibot',
                 fromCommand: false
             });
-            console.log(chalk.bold.greenBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) reconectado exitosamente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`));
+            console.log(chalk.bold.greenBright(`\nSub-bot (+${folder}) reconectado exitosamente.`));
         } catch (e) {
             console.error(chalk.redBright(`Error al reconectar sub-bot (+${folder}):`), e);
         }
     }
 }
 
-setInterval(checkSubBots, 60000); //1min
+setInterval(checkSubBots, 600000); //1min
