@@ -1,96 +1,67 @@
-import fetch from 'node-fetch'
-
 let handler = async (m) => {}
 handler.all = async function (m) {
   if (!m.isGroup) return
   if (!m.messageStubType) return
+  if (m.messageStubType === 2) return // ignorar mensajes cifrados
 
   const conn = global.conn
-  if (!conn) return
-
   const chat = global.db.data.chats[m.chat]
-  if (!chat?.detect) return
+  if (!conn || !chat?.detect) return
 
   const usuario = '@' + m.sender.split('@')[0]
+  const stub = m.messageStubType
+  const param = m.messageStubParameters?.[0] || ''
 
-  // Log para ver el stub
-  console.log('📡 Evento detectado:', {
-    messageStubType: m.messageStubType,
-    messageStubParameters: m.messageStubParameters
-  })
+  console.log('📡 Evento detectado:', { stub, param })
 
-  try {
-    switch (m.messageStubType) {
-      case 21: // cambio de nombre
-        await conn.sendMessage(m.chat, {
-          text: `✨ ${usuario} *ha cambiado el nombre del grupo* ✨\n\n> 📝 *Nuevo nombre:* _${m.messageStubParameters?.[0] || ''}_`,
-          mentions: [m.sender]
-        })
-        break
+  let texto
 
-      case 22: // cambio de icono
-        await conn.sendMessage(m.chat, {
-          text: `📸 *¡Nueva foto de grupo!* 📸\n\n> 💫 Acción realizada por: ${usuario}`,
-          mentions: [m.sender]
-        })
-        break
+  // Aquí ponemos los stubs según lo que salga en tu consola
+  switch (stub) {
+    case 26: // abrir/cerrar grupo
+      texto = param === 'on'
+        ? `❱❱ 𝗢́𝗥𝗗𝗘𝗡𝗘𝗦 𝗥𝗘𝗖𝗜𝗕𝗜𝗗𝗔𝗦 ❰❰\n\n👤 ${usuario}\n» 𝗖𝗘𝗥𝗥𝗢́ 𝗘𝗟 𝗚𝗥𝗨𝗣𝗢.\n\n> 💬 Solo los administradores pueden enviar mensajes.`
+        : `❱❱ 𝗢́𝗥𝗗𝗘𝗡𝗘𝗦 𝗥𝗘𝗖𝗜𝗕𝗜𝗗𝗔𝗦 ❰❰\n\n👤 ${usuario}\n» 𝗔𝗕𝗥𝗜𝗢́ 𝗘𝗟 𝗚𝗥𝗨𝗣𝗢.\n\n> 💬 Todos los miembros pueden enviar mensajes.`
+      break
 
-      case 26: // grupo cerrado/abierto (ANNOUNCE)
-        if (m.messageStubParameters?.[0] === 'on') {
-          await conn.sendMessage(m.chat, {
-            text: `❱❱ 𝗢́𝗥𝗗𝗘𝗡𝗘𝗦 𝗥𝗘𝗖𝗜𝗕𝗜𝗗𝗔𝗦 ❰❰\n\n👤 ${usuario}\n» 𝗖𝗘𝗥𝗥𝗢́ 𝗘𝗟 𝗚𝗥𝗨𝗣𝗢.\n\n> 💬 Ahora *solo los administradores* pueden enviar mensajes.`,
-            mentions: [m.sender]
-          })
-        } else {
-          await conn.sendMessage(m.chat, {
-            text: `❱❱ 𝗢́𝗥𝗗𝗘𝗡𝗘𝗦 𝗥𝗘𝗖𝗜𝗕𝗜𝗗𝗔𝗦 ❰❰\n\n👤 ${usuario}\n» 𝗔𝗕𝗥𝗜𝗢́ 𝗘𝗟 𝗚𝗥𝗨𝗣𝗢.\n\n> 💬 Ahora *todos los miembros* pueden enviar mensajes.`,
-            mentions: [m.sender]
-          })
-        }
-        break
+    case 31: // cambio de nombre (ajusta al número que tu consola muestre)
+      texto = `✨ ${usuario} *ha cambiado el nombre del grupo* ✨\n\n> 📝 *Nuevo nombre:* _${param}_`
+      break
 
-      case 25: // restrict (solo admin pueden editar info)
-        if (m.messageStubParameters?.[0] === 'on') {
-          await conn.sendMessage(m.chat, {
-            text: `⚙️ ${usuario} ha ajustado la configuración del grupo.\n\n> 🔒 Ahora *solo los administradores* pueden editar la info del grupo.`,
-            mentions: [m.sender]
-          })
-        } else {
-          await conn.sendMessage(m.chat, {
-            text: `⚙️ ${usuario} ha ajustado la configuración del grupo.\n\n> 🔓 Ahora *todos los miembros* pueden editar la info del grupo.`,
-            mentions: [m.sender]
-          })
-        }
-        break
+    case 32: // cambio de icono
+      texto = `📸 *¡Nueva foto de grupo!* 📸\n\n> 💫 Acción realizada por: ${usuario}`
+      break
 
-      case 29: // cambio de descripción
-        await conn.sendMessage(m.chat, {
-          text: `📝 ${usuario} ha cambiado la descripción del grupo.\n\n> 🔹 Nueva descripción: _${m.messageStubParameters?.[0] || ''}_`,
-          mentions: [m.sender]
-        })
-        break
+    case 33: // cambio de descripción
+      texto = `📝 ${usuario} ha cambiado la descripción del grupo.\n\n> 🔹 Nueva descripción: _${param}_`
+      break
 
-      case 172: // promote
-        await conn.sendMessage(m.chat, {
-          text: `❱❱ 𝙁𝙀𝙇𝙄𝘾𝙄𝘿𝘼𝘿𝙀𝙎 ❰❰\n\n👤 @${m.messageStubParameters?.[0]?.split('@')[0]}\n» 𝘼𝙃𝙊𝙍𝘼 𝙀𝙎 𝘼𝘿𝙈𝙄𝙉.\n\n» 𝘼𝘾𝘾𝙄𝙊́𝙉 𝙍𝙀𝘼𝙇𝙄𝙕𝘼𝘿𝘼 𝙋𝙊𝙍:\n${usuario}`,
-          mentions: [m.sender]
-        })
-        break
+    case 34: // restrict edit group
+      texto = param === 'on'
+        ? `⚙️ ${usuario} ha restringido los ajustes del grupo.\n\n> 🔒 Solo los administradores pueden editar la info del grupo.`
+        : `⚙️ ${usuario} ha permitido que todos editen los ajustes del grupo.`
+      break
 
-      case 173: // demote
-        await conn.sendMessage(m.chat, {
-          text: `❱❱ 𝙄𝙉𝙁𝙊𝙍𝙈𝘼𝘾𝙄𝙊́𝙉 ❰❰\n\n👤 @${m.messageStubParameters?.[0]?.split('@')[0]}\n» 𝙔𝘼 𝙉𝙊 𝙀𝙎 𝘼𝘿𝙈𝙄𝙉.\n\n» 𝘼𝘾𝘾𝙄𝙊́𝙉 𝙍𝙀𝘼𝙇𝙄𝙕𝘼𝘿𝘼 𝙋𝙊𝙍:\n${usuario}`,
-          mentions: [m.sender]
-        })
-        break
+    case 174: // promote
+      texto = `👑 @${param.split('@')[0]} ahora es administrador.\n\n> Acción realizada por ${usuario}`
+      break
 
-      default:
-        // solo log
-        console.log('Stub no manejado:', m.messageStubType)
-        break
+    case 175: // demote
+      texto = `❌ @${param.split('@')[0]} ya no es administrador.\n\n> Acción realizada por ${usuario}`
+      break
+
+    default:
+      console.log('Stub no manejado:', stub, param)
+      return
+  }
+
+  // Enviar mensaje si se definió texto
+  if (texto) {
+    try {
+      await conn.sendMessage(m.chat, { text: texto, mentions: [m.sender] })
+    } catch (e) {
+      console.error('Error enviando mensaje de stub:', e)
     }
-  } catch (err) {
-    console.error('Error en autodetector:', err)
   }
 }
 
