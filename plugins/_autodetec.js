@@ -1,40 +1,39 @@
-
 import fetch from 'node-fetch'
 import { WAMessageStubType } from '@whiskeysockets/baileys'
 
 let handler = m => m
 
-// Función para obtener el jid real dentro del grupo
+// 🔍 Función auxiliar para obtener el jid real dentro del grupo
 const getRealJid = async (jid, chatId, conn) => {
   if (!jid?.endsWith?.('@lid')) return jid
   try {
     const group = await conn.groupMetadata(chatId)
-    const member = group.participants.find(p => p.jid.includes(jid.split('@')[0]))
-    return member ? member.jid : jid
+    const member = group.participants.find(p => p.id.includes(jid.split('@')[0]))
+    return member ? member.id : jid
   } catch (e) {
     return jid
   }
 }
 
-handler.before = async function (m, { conn }) {
+// 💬 Escucha todos los mensajes, incluyendo system messages
+handler.all = async function (m, { conn }) {
   if (!m.isGroup || !m.messageStubType) return
 
-  // FILTRO IMPORTANTE: Ignorar mensajes cifrados y otros stubs no deseados
-  if (m.messageStubType === WAMessageStubType.CIPHERTEXT || 
-      m.messageStubType === 2 || // CIPHERTEXT
-      m.messageStubParameters?.some(param => 
-        typeof param === 'string' && param.includes('decrypt')
-      )) {
-    return // Ignorar completamente estos mensajes
-  }
+  // FILTRO: Ignorar mensajes cifrados o irrelevantes
+  if (
+    m.messageStubType === WAMessageStubType.CIPHERTEXT ||
+    m.messageStubType === 2 ||
+    m.messageStubParameters?.some(param => typeof param === 'string' && param.includes('decrypt'))
+  ) return
 
-  const chat = global.db.data.chats[m.chat]
-  if (!chat.detect) return
+  // Puedes activar esta línea si usas el sistema detect:
+  // const chat = global.db.data.chats[m.chat]
+  // if (!chat.detect) return
 
   const usuario = '@' + m.sender.split('@')[0]
   const pp = await conn.profilePictureUrl(m.chat, 'image').catch(() => null) || 'https://files.catbox.moe/xr2m6u.jpg'
 
-  // Contacto para citar
+  // Contacto de cita
   const fkontak = {
     key: {
       participants: "0@s.whatsapp.net",
@@ -64,12 +63,12 @@ handler.before = async function (m, { conn }) {
   }
 
   try {
-    // Obtener jid real del participante si aplica
+    // Obtener jid real si aplica
     const stubUser = m.messageStubParameters?.[0] && !m.messageStubParameters[0].includes('decrypt')
-      ? await getRealJid(m.messageStubParameters[0], m.chat, conn) 
+      ? await getRealJid(m.messageStubParameters[0], m.chat, conn)
       : null
 
-    // Mensajes
+    // 📜 Textos originales
     const nombre = `✨ ${usuario} *ha cambiado el nombre del grupo* ✨\n\n> 📝 *Nuevo nombre:* _${m.messageStubParameters?.[0] || ''}_`
     const foto = `📸 *¡Nueva foto de grupo!* 📸\n\n> 💫 Acción realizada por: ${usuario}`
     const edit = `⚙️ ${usuario} ha ajustado la configuración del grupo.\n\n> 🔒 Ahora *${m.messageStubParameters?.[0] == 'on' ? 'solo los administradores' : 'todos'}* pueden configurar el grupo.`
@@ -81,7 +80,7 @@ handler.before = async function (m, { conn }) {
     const memberAddMode = `👥 ${usuario} ha cambiado el modo de adición de miembros.\n\n> 🔹 Nuevo modo: _${m.messageStubParameters?.[0] || ''}_`
     const joinApprovalMode = `🔐 ${usuario} ha cambiado el modo de aprobación para unirse al grupo.\n\n> 🔹 Nuevo modo: _${m.messageStubParameters?.[0] || ''}_`
 
-    // Detectar tipos de stubs válidos
+    // 🔁 Switch con los mismos casos
     switch (m.messageStubType) {
       case WAMessageStubType.GROUP_CHANGE_NAME:
         await conn.sendMessage(m.chat, { text: nombre, mentions: [m.sender] }, { quoted: fkontak })
@@ -118,7 +117,6 @@ handler.before = async function (m, { conn }) {
         await conn.sendMessage(m.chat, { text: joinApprovalMode, mentions: [m.sender] }, { quoted: fkontak })
         break
       default:
-        // Solo mostrar en consola si no es un mensaje cifrado
         if (m.messageStubType !== WAMessageStubType.CIPHERTEXT && m.messageStubType !== 2) {
           console.log('Stub no manejado:', {
             messageStubType: m.messageStubType,
@@ -127,9 +125,9 @@ handler.before = async function (m, { conn }) {
           })
         }
     }
+
   } catch (error) {
     console.error('Error en detector de cambios de grupo:', error)
-    // No hacer nada en caso de error para evitar bucles
   }
 }
 
