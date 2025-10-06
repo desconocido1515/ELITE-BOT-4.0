@@ -1,43 +1,47 @@
-let handler = m => m
+import fs from 'fs'
 
-handler.before = async function (m, { conn, groupMetadata }) {
-  if (!m.messageStubType || !m.isGroup) return
-  if (m.messageStubType !== 20) return // 20 = bot agregado al grupo
+let handler = async (m, { conn }) => {}
+export default handler
 
-  let botName = conn.user.name
-  let audioPath = './Audios/presentacion1.mp3'
+// Detectar cuando el bot es agregado a un grupo
+handler.groupUpdate = async function (update) {
+  try {
+    const { id, participants, action } = update
+    const botJid = this.user.jid || this.decodeJid(this.user.id)
 
-  let welcomeBotText = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢!🥇  
+    // Verifica si el bot fue agregado
+    if (action === 'add' && participants.includes(botJid)) {
+      let botName = this.user.name
+      let audioPath = './Audios/presentacion1.mp3'
+
+      let welcomeBotText = `🥇 ¡𝗛𝗢𝗟𝗔 𝗚𝗥𝗨𝗣𝗢!🥇  
 ¡Soy ${botName}, su nuevo asistente digital!  
 ━━━━━━━━━━━━━━━━━━━  
 ⚡ *Mis funciones :*  
-▸  Descargar música/videos  
-▸  Búsquedas en Google  
-▸  Juegos y diversión  
-▸  Generar imágenes con IA  
-▸  Herramientas para Free Fire  
+▸ Descargar música/videos  
+▸ Búsquedas en Google  
+▸ Juegos y diversión  
+▸ Generar imágenes con IA  
+▸ Herramientas para Free Fire  
 ━━━━━━━━━━━━━━━━━━━  
 📂 *Mis menús:*  
-▸  .menu → *Menú general*  
-▸  .menuimg → *Imágenes AI*  
-▸  .menuhot → *Contenido hot*  
-▸  .menuaudios → *Efectos*  
-▸  .menujuegos → *Juegos grupales*  
-▸  .menufreefire → *Free Fire tools*  
+▸ .menu → *Menú general*  
+▸ .menuimg → *Imágenes AI*  
+▸ .menuhot → *Contenido hot*  
+▸ .menuaudios → *Efectos*  
+▸ .menujuegos → *Juegos grupales*  
+▸ .menufreefire → *Free Fire tools*  
 ━━━━━━━━━━━━━━━━━━━  
 ©EliteBotGlobal 2023`
 
-  // Enviar texto (sin quoted para evitar errores)
-  await conn.sendMessage(m.chat, {
-    text: welcomeBotText
-  })
-
-  // Enviar audio
-  await conn.sendMessage(m.chat, {
-    audio: { url: audioPath },
-    mimetype: 'audio/mpeg',
-    ptt: true
-  })
+      await this.sendMessage(id, { text: welcomeBotText })
+      await this.sendMessage(id, {
+        audio: { url: audioPath },
+        mimetype: 'audio/mpeg',
+        ptt: true
+      })
+    }
+  } catch (err) {
+    console.error('Error al detectar ingreso del bot:', err)
+  }
 }
-
-export default handler
