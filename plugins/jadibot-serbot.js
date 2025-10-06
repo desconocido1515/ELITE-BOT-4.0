@@ -1,6 +1,3 @@
-
-
-
 const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import(global.baileys));
 import qrcode from "qrcode"
 import NodeCache from "node-cache"
@@ -267,22 +264,7 @@ global.conns.push(sock)
 
 let user = global.db.data?.users[`${path.basename(pathGataJadiBot)}@s.whatsapp.net`]
 m?.chat ? await conn.sendMessage(m.chat, {text : args[0] ? `${lenguajeGB['smsJBCargando'](usedPrefix)}` : `${lenguajeGB['smsJBConexionTrue2']()}` + ` ${usedPrefix + command}`}, { quoted: m }) : ''
-let chtxt = `
-👤 *Usuario:* ${userName} ✅
-🔑 *Método de conexión:* ${mcode ? 'Código de 8 dígitos' : 'Código QR'} ✅
-`.trim()
-let ppch = await sock.profilePictureUrl(userJid, 'image').catch(_ => gataMenu)
-await sleep(3000)
-await global.conn.sendMessage(ch.ch1, { text: chtxt, contextInfo: {
-externalAdReply: {
-title: "【 🔔 Notificación General 🔔 】",
-body: '🙀 ¡Nuevo sub-bot encontrado!',
-thumbnailUrl: ppch,
-sourceUrl: accountsgb,
-mediaType: 1,
-showAdAttribution: false,
-renderLargerThumbnail: false
-}}}, { quoted: null })
+
 await sleep(3000)
 await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text : `╭─────────────────╮  
@@ -342,14 +324,6 @@ sock.ev.off('call', sock.onCall)
 sock.ev.off('connection.update', sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
-sock.welcome = lenguajeGB['smsWelcome']() 
-sock.bye = lenguajeGB['smsBye']() 
-sock.spromote = lenguajeGB['smsSpromote']() 
-sock.sdemote = lenguajeGB['smsSdemote']() 
-sock.sDesc = lenguajeGB['smsSdesc']() 
-sock.sSubject = lenguajeGB['smsSsubject']() 
-sock.sIcon = lenguajeGB['smsSicon']() 
-sock.sRevoke = lenguajeGB['smsSrevoke']()
 
 sock.handler = handler.handler.bind(sock)
 sock.participantsUpdate = handler.participantsUpdate.bind(sock)
