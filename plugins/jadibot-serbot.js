@@ -18,7 +18,6 @@ try {
 } catch (error) {
   console.error('Error cargando makeWASocket:', error)
   try {
-    // Intentar con ruta alternativa si existe
     ;({ makeWASocket } = await import('./lib/simple.js'))
   } catch (error2) {
     console.error('Error cargando makeWASocket desde ruta alternativa:', error2)
@@ -76,7 +75,6 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 handler.command = /^(jadibot|serbot|rentbot|code)/i
 export default handler 
 
-// Función mejorada para cargar el handler
 async function loadHandler() {
   const possiblePaths = [
     './handler.js',
@@ -303,37 +301,7 @@ export async function gataJadiBot(options) {
       sock.isInit = true
       global.conns.push(sock)
 
-      let user = global.db.data?.users[`${path.basename(pathGataJadiBot)}@s.whatsapp.net`]
       m?.chat ? await conn.sendMessage(m.chat, {text : args[0] ? `Conectando... si falla, intenta de nuevo con ${usedPrefix}code` : `Sub-bot conectado. Para reconectar luego usa ${usedPrefix + command}`}, { quoted: m }) : ''
-      
-      let chtxt = `
-👤 *Usuario:* ${userName} ✅
-🔑 *Método de conexión:* ${mcode ? 'Código de 8 dígitos' : 'Código QR'} ✅
-`.trim()
-      
-      let ppch = await sock.profilePictureUrl(userJid, 'image').catch(_ => gataMenu)
-      await sleep(3000)
-      
-      try {
-        if (global.ch?.ch1 && global.conn) {
-          await global.conn.sendMessage(global.ch.ch1, { 
-            text: chtxt, 
-            contextInfo: {
-              externalAdReply: {
-                title: "【 🔔 Notificación General 🔔 】",
-                body: '🙀 ¡Nuevo sub-bot encontrado!',
-                thumbnailUrl: ppch,
-                sourceUrl: accountsgb,
-                mediaType: 1,
-                showAdAttribution: false,
-                renderLargerThumbnail: false
-              }
-            }
-          }, { quoted: null })
-        }
-      } catch (error) {
-        console.error('Error enviando notificación:', error)
-      }
       
       await sleep(3000)
       await joinChannels(sock)
@@ -385,15 +353,6 @@ export async function gataJadiBot(options) {
       sock.ev.off('connection.update', sock.connectionUpdate)
       sock.ev.off('creds.update', sock.credsUpdate)
     }
-    
-    sock.welcome = '👋 Bienvenido'
-    sock.bye = '👋 Adiós'
-    sock.spromote = 'Usuario promovido a admin.'
-    sock.sdemote = 'Usuario degradado de admin.'
-    sock.sDesc = 'Descripción de grupo actualizada.'
-    sock.sSubject = 'Nombre del grupo actualizado.'
-    sock.sIcon = 'Icono de grupo actualizado.'
-    sock.sRevoke = 'Enlace de invitación restablecido.'
 
     sock.handler = handler.handler.bind(sock)
     sock.participantsUpdate = handler.participantsUpdate?.bind(sock)
