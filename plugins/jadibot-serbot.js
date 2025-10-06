@@ -9,12 +9,12 @@ import util from 'util'
 import * as ws from 'ws'
 let makeWASocket
 try {
-  ;({ makeWASocket } = await import('../lib/simple.js'))
+  ;({ makeWASocket } = await import('../../lib/simple.js'))
 } catch {
   try {
     ;({ makeWASocket } = await import('../lib/simple.js'))
   } catch {
-    ;({ makeWASocket } = await import('../lib/simple.js'))
+    ;({ makeWASocket } = await import('../../lib/simple.js'))
   }
 }
 import { fileURLToPath } from 'url'
