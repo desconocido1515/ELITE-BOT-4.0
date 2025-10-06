@@ -75,10 +75,18 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 handler.command = /^(jadibot|serbot|rentbot|code)/i
 export default handler 
 
+// Cache para el handler cargado
+let handlerCache = null;
+
 async function loadHandler() {
+  // Si ya está cargado en cache, devolverlo
+  if (handlerCache) {
+    return handlerCache;
+  }
+
   const possiblePaths = [
+    '../handler.js',  // Mover esta primera ya que es la que funciona
     './handler.js',
-    '../handler.js',
     path.join(process.cwd(), 'handler.js'),
     path.join(__dirname, '../../handler.js'),
     path.join(__dirname, '../handler.js')
@@ -89,7 +97,10 @@ async function loadHandler() {
       console.log(`Intentando cargar handler desde: ${handlerPath}`)
       const handlerModule = await import(handlerPath)
       console.log(`✅ Handler cargado exitosamente desde: ${handlerPath}`)
-      return handlerModule
+      
+      // Guardar en cache
+      handlerCache = handlerModule;
+      return handlerModule;
     } catch (error) {
       console.log(`❌ No se pudo cargar desde ${handlerPath}:`, error.message)
       continue
@@ -323,15 +334,21 @@ export async function gataJadiBot(options) {
     }
   }, 60000)
 
-  let handler
+  // Cargar el handler una sola vez al inicio
+  let mainHandler = await loadHandler().catch(console.error);
+  
   let creloadHandler = async function (restatConn) {
-    try {
-      const Handler = await loadHandler()
-      if (Handler && Object.keys(Handler).length) {
-        handler = Handler
+    // Solo recargar si es necesario, no siempre
+    if (!mainHandler) {
+      try {
+        const Handler = await loadHandler()
+        if (Handler && Object.keys(Handler).length) {
+          mainHandler = Handler
+        }
+      } catch (e) {
+        console.error('Error cargando handler: ', e)
+        return false;
       }
-    } catch (e) {
-      console.error('Error cargando handler: ', e)
     }
     
     if (restatConn) {
@@ -354,11 +371,12 @@ export async function gataJadiBot(options) {
       sock.ev.off('creds.update', sock.credsUpdate)
     }
 
-    sock.handler = handler.handler.bind(sock)
-    sock.participantsUpdate = handler.participantsUpdate?.bind(sock)
-    sock.groupsUpdate = handler.groupsUpdate?.bind(sock)
-    sock.onDelete = handler.deleteUpdate?.bind(sock)
-    sock.onCall = handler.callUpdate?.bind(sock)
+    // Usar el handler principal cargado
+    sock.handler = mainHandler.handler.bind(sock)
+    sock.participantsUpdate = mainHandler.participantsUpdate?.bind(sock)
+    sock.groupsUpdate = mainHandler.groupsUpdate?.bind(sock)
+    sock.onDelete = mainHandler.deleteUpdate?.bind(sock)
+    sock.onCall = mainHandler.callUpdate?.bind(sock)
     sock.connectionUpdate = connectionUpdate.bind(sock)
     sock.credsUpdate = saveCreds.bind(sock, true)
 
@@ -450,4 +468,4 @@ async function checkSubBots() {
   }
 }
 
-setInterval(checkSubBots, 60000)
+setInterval(checkSubBots, 600000)
