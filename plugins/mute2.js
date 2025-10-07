@@ -1,45 +1,15 @@
-// Comando para mutear (usando el prefijo de Gata Bot)
-let commandMute = /^.*\.mute(?:\s+@?(\d+))?$/i;
+// Comando para mutear y desmutear en Gata Bot-MD
+let commandMute = /^[!\/#\.]mute(?:\s+@?(\d+))?$/i;
+let commandUnmute = /^[!\/#\.]unmute(?:\s+@?(\d+))?$/i;
 
-// Comando para desmutear  
-let commandUnmute = /^.*\.unmute(?:\s+@?(\d+))?$/i;
-
-// Función para mutear usuario
-async function muteUser(m, userId) {
-    const chatId = m.chat;
-    
-    if (!userId) {
-        return m.reply('❌ *Responde a un mensaje o menciona a un usuario*');
-    }
-
-    try {
-        await bot.groupParticipantsUpdate(chatId, [userId], 'mute');
-        m.reply('✅ *Usuario muteado exitosamente*');
-    } catch (error) {
-        m.reply('❌ *Error al mutear usuario*');
-    }
-}
-
-// Función para desmutear usuario
-async function unmuteUser(m, userId) {
-    const chatId = m.chat;
-    
-    if (!userId) {
-        return m.reply('❌ *Responde a un mensaje o menciona a un usuario*');
-    }
-
-    try {
-        await bot.groupParticipantsUpdate(chatId, [userId], 'unmute');
-        m.reply('✅ *Usuario desmuteado exitosamente*');
-    } catch (error) {
-        m.reply('❌ *Error al desmutear usuario*');
-    }
-}
-
-// Manejador de comandos (estructura Gata Bot)
 export async function before(m, { conn, text, participants }) {
-    // Comando mute
-    if (m.text.match(commandMute)) {
+    // Verificar si el mensaje tiene contenido y es en grupo
+    if (!m.message || !m.chat.endsWith('@g.us')) return;
+
+    const messageText = m.text || '';
+    
+    // Comando MUTE
+    if (commandMute.test(messageText)) {
         let userId;
         
         // Si es respuesta a un mensaje
@@ -50,17 +20,30 @@ export async function before(m, { conn, text, participants }) {
         else if (m.mentionedJid && m.mentionedJid.length > 0) {
             userId = m.mentionedJid[0];
         }
-        // Si se proporcionó ID
-        else if (text.match(/\d+/)) {
-            userId = text.match(/\d+/)[0] + '@s.whatsapp.net';
+        // Si se proporcionó ID en el texto
+        else if (text) {
+            const numMatch = text.match(/\d+/);
+            if (numMatch) {
+                userId = numMatch[0] + '@s.whatsapp.net';
+            }
         }
         
-        await muteUser(m, userId);
+        if (!userId) {
+            return m.reply('❌ *Debes responder a un mensaje, mencionar a un usuario o proporcionar su número*');
+        }
+
+        try {
+            await conn.groupParticipantsUpdate(m.chat, [userId], 'mute');
+            m.reply('✅ *Usuario muteado exitosamente*');
+        } catch (error) {
+            console.log(error);
+            m.reply('❌ *Error al mutear usuario. Verifica que soy administrador*');
+        }
         return true;
     }
     
-    // Comando unmute
-    if (m.text.match(commandUnmute)) {
+    // Comando UNMUTE
+    if (commandUnmute.test(messageText)) {
         let userId;
         
         if (m.quoted) {
@@ -69,11 +52,24 @@ export async function before(m, { conn, text, participants }) {
         else if (m.mentionedJid && m.mentionedJid.length > 0) {
             userId = m.mentionedJid[0];
         }
-        else if (text.match(/\d+/)) {
-            userId = text.match(/\d+/)[0] + '@s.whatsapp.net';
+        else if (text) {
+            const numMatch = text.match(/\d+/);
+            if (numMatch) {
+                userId = numMatch[0] + '@s.whatsapp.net';
+            }
         }
         
-        await unmuteUser(m, userId);
+        if (!userId) {
+            return m.reply('❌ *Debes responder a un mensaje, mencionar a un usuario o proporcionar su número*');
+        }
+
+        try {
+            await conn.groupParticipantsUpdate(m.chat, [userId], 'unmute');
+            m.reply('✅ *Usuario desmuteado exitosamente*');
+        } catch (error) {
+            console.log(error);
+            m.reply('❌ *Error al desmutear usuario. Verifica que soy administrador*');
+        }
         return true;
     }
 }
