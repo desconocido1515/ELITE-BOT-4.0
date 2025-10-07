@@ -1,63 +1,79 @@
-// Comando para mutear un usuario
-let commandMute = /^\.mute(?:\s+@?(\d+))?$/i;
+// Comando para mutear (usando el prefijo de Gata Bot)
+let commandMute = /^.*\.mute(?:\s+@?(\d+))?$/i;
 
-async function muteUser(userId, chatId) {
+// Comando para desmutear  
+let commandUnmute = /^.*\.unmute(?:\s+@?(\d+))?$/i;
+
+// Función para mutear usuario
+async function muteUser(m, userId) {
+    const chatId = m.chat;
+    
+    if (!userId) {
+        return m.reply('❌ *Responde a un mensaje o menciona a un usuario*');
+    }
+
     try {
-        // Restringir permisos del usuario
-        await bot.restrictChatMember(chatId, userId, {
-            can_send_messages: false,
-            can_send_media_messages: false,
-            can_send_other_messages: false,
-            can_add_web_page_previews: false
-        });
-        
-        return `✅ Usuario muteado exitosamente`;
+        await bot.groupParticipantsUpdate(chatId, [userId], 'mute');
+        m.reply('✅ *Usuario muteado exitosamente*');
     } catch (error) {
-        return `❌ Error al mutear usuario: ${error.message}`;
+        m.reply('❌ *Error al mutear usuario*');
     }
 }
 
-// Comando para desmutear un usuario
-let commandUnmute = /^\.unmute(?:\s+@?(\d+))?$/i;
+// Función para desmutear usuario
+async function unmuteUser(m, userId) {
+    const chatId = m.chat;
+    
+    if (!userId) {
+        return m.reply('❌ *Responde a un mensaje o menciona a un usuario*');
+    }
 
-async function unmuteUser(userId, chatId) {
     try {
-        // Restaurar permisos del usuario
-        await bot.restrictChatMember(chatId, userId, {
-            can_send_messages: true,
-            can_send_media_messages: true,
-            can_send_other_messages: true,
-            can_add_web_page_previews: true
-        });
-        
-        return `✅ Usuario desmuteado exitosamente`;
+        await bot.groupParticipantsUpdate(chatId, [userId], 'unmute');
+        m.reply('✅ *Usuario desmuteado exitosamente*');
     } catch (error) {
-        return `❌ Error al desmutear usuario: ${error.message}`;
+        m.reply('❌ *Error al desmutear usuario*');
     }
 }
 
-// Manejador del comando mute
-bot.onText(commandMute, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const userId = match[1] || msg.reply_to_message?.from?.id;
-
-    if (!userId) {
-        return bot.sendMessage(chatId, "❌ Debes responder al mensaje del usuario o proporcionar su ID");
+// Manejador de comandos (estructura Gata Bot)
+export async function before(m, { conn, text, participants }) {
+    // Comando mute
+    if (m.text.match(commandMute)) {
+        let userId;
+        
+        // Si es respuesta a un mensaje
+        if (m.quoted) {
+            userId = m.quoted.sender;
+        } 
+        // Si se mencionó un usuario
+        else if (m.mentionedJid && m.mentionedJid.length > 0) {
+            userId = m.mentionedJid[0];
+        }
+        // Si se proporcionó ID
+        else if (text.match(/\d+/)) {
+            userId = text.match(/\d+/)[0] + '@s.whatsapp.net';
+        }
+        
+        await muteUser(m, userId);
+        return true;
     }
-
-    const result = await muteUser(userId, chatId);
-    bot.sendMessage(chatId, result);
-});
-
-// Manejador del comando unmute
-bot.onText(commandUnmute, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const userId = match[1] || msg.reply_to_message?.from?.id;
-
-    if (!userId) {
-        return bot.sendMessage(chatId, "❌ Debes responder al mensaje del usuario o proporcionar su ID");
+    
+    // Comando unmute
+    if (m.text.match(commandUnmute)) {
+        let userId;
+        
+        if (m.quoted) {
+            userId = m.quoted.sender;
+        } 
+        else if (m.mentionedJid && m.mentionedJid.length > 0) {
+            userId = m.mentionedJid[0];
+        }
+        else if (text.match(/\d+/)) {
+            userId = text.match(/\d+/)[0] + '@s.whatsapp.net';
+        }
+        
+        await unmuteUser(m, userId);
+        return true;
     }
-
-    const result = await unmuteUser(userId, chatId);
-    bot.sendMessage(chatId, result);
-});
+}
