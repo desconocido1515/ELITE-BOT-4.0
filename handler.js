@@ -1073,9 +1073,9 @@ let settings = global.db.data.settings[this.user.jid]
 if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
 if (settings) {
 if (!('self' in settings)) settings.self = false
-if (!('autoread' in settings)) settings.autoread = true
-if (!('autoread2' in settings)) settings.autoread2 = true
-if (!('restrict' in settings)) settings.restrict = true
+if (!('autoread' in settings)) settings.autoread = false
+if (!('autoread2' in settings)) settings.autoread2 = false
+if (!('restrict' in settings)) settings.restrict = false
 if (!('temporal' in settings)) settings.temporal = false
 if (!('anticommand' in settings)) settings.anticommand = false
 if (!('antiPrivate' in settings)) settings.antiPrivate = false
@@ -1086,9 +1086,9 @@ if (!('jadibotmd' in settings)) settings.jadibotmd = true
 if (!('prefix' in settings)) settings.prefix = opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@';
 } else global.db.data.settings[this.user.jid] = {
 self: false,
-autoread: true,
-autoread2: true,
-restrict: true,
+autoread: false,
+autoread2: false,
+restrict: false,
 temporal: false,
 antiPrivate: false,
 antiCall: true,
