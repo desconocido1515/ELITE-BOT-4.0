@@ -17,19 +17,27 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
         return conn.reply(m.chat, `❌ *Debes mencionar o responder a un mensaje*\n\nEjemplo:\n• ${usedPrefix}${command} @usuario\n• ${usedPrefix}${command} (respondiendo a mensaje)`, m);
     }
 
+    console.log('Usuario detectado:', user); // Debug
+
+    // Obtener el número real del usuario
+    let userNumber = user.split('@')[0];
+    
+    // Para mostrar en el mensaje, usar solo los últimos 10 dígitos (número de teléfono)
+    let displayNumber = userNumber.length > 10 ? userNumber.slice(-10) : userNumber;
+
     if (command === "mute") {
         if (mutedUsers.has(user)) {
-            return conn.reply(m.chat, `❌ *El usuario ya está muteado* @${user.split('@')[0]}`, m, { mentions: [user] });
+            return conn.reply(m.chat, `❌ *El usuario ya está muteado* @${displayNumber}`, m, { mentions: [user] });
         }
         mutedUsers.add(user);
-        conn.reply(m.chat, `✅ *Usuario muteado:* @${user.split('@')[0]}\n\n⚠️ *Ahora se eliminarán sus mensajes automáticamente*`, m, { mentions: [user] });
+        conn.reply(m.chat, `✅ *Usuario muteado:* @${displayNumber}\n\n⚠️ *Ahora se eliminarán sus mensajes automáticamente*`, m, { mentions: [user] });
     
     } else if (command === "unmute") {
         if (!mutedUsers.has(user)) {
-            return conn.reply(m.chat, `❌ *El usuario no está muteado* @${user.split('@')[0]}`, m, { mentions: [user] });
+            return conn.reply(m.chat, `❌ *El usuario no está muteado* @${displayNumber}`, m, { mentions: [user] });
         }
         mutedUsers.delete(user);
-        conn.reply(m.chat, `✅ *Usuario desmuteado:* @${user.split('@')[0]}`, m, { mentions: [user] });
+        conn.reply(m.chat, `✅ *Usuario desmuteado:* @${displayNumber}`, m, { mentions: [user] });
     }
 };
 
