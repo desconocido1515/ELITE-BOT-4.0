@@ -4,64 +4,60 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
         return m.reply('❌ *Este comando solo funciona en grupos*');
     }
 
-    // Verificar si hay mención, respuesta o texto
+    // Verificar si hay mención, respuesta o texto (igual que tu comando follar)
     if (!text && !m.mentionedJid[0] && !m.quoted) {
-        return m.reply(`❌ *Debes mencionar, responder a un mensaje o proporcionar el número de un usuario*\n\nEjemplos:\n• ${usedPrefix}${command} @usuario\n• ${usedPrefix}${command} respondiendo a un mensaje\n• ${usedPrefix}${command} 584123456789`);
+        return m.reply(`❌ *Debes mencionar, responder a un mensaje o proporcionar el número de un usuario*`);
     }
 
     try {
-        // ✅ Obtener el usuario real
+        // ✅ Obtener el usuario real (EXACTAMENTE igual que tu comando follar)
         let user = m.mentionedJid[0] 
             ? m.mentionedJid[0] 
             : m.quoted 
                 ? m.quoted.sender 
-                : text.match(/\d+/g) 
-                    ? text.match(/\d+/g)[0] + '@s.whatsapp.net'
-                    : false
+                : false
 
         if (!user) {
             return m.reply('❌ *No se pudo identificar al usuario*');
         }
 
-        console.log('Usuario detectado:', user); // Debug
+        console.log('Usuario a procesar:', user);
 
-        // Verificar que el usuario existe en el grupo
-        let groupMetadata = await conn.groupMetadata(m.chat);
-        let participants = groupMetadata.participants;
-        
-        console.log('Total participantes:', participants.length); // Debug
-        
-        // Buscar el usuario en los participantes - CORREGIDO
-        let userExists = participants.find(p => {
-            // Comparar tanto el JID normal como el LID
-            const userWithoutSuffix = user.replace(/@s\.whatsapp\.net|@lid/, '');
-            const participantId = p.id.replace(/@s\.whatsapp\.net|@lid/, '');
-            return participantId === userWithoutSuffix;
-        });
-
-        console.log('Usuario encontrado:', userExists); // Debug
-
-        if (!userExists) {
-            return m.reply('❌ *El usuario no está en este grupo*');
-        }
-
-        // Obtener el JID correcto para la acción (usar el jid del participante)
-        const correctJid = userExists.jid || userExists.id;
-
-        console.log('JID a usar para la acción:', correctJid); // Debug
-
-        // Ejecutar mute o unmute según el comando
-        if (command === 'mute') {
-            await conn.groupParticipantsUpdate(m.chat, [correctJid], 'mute');
-            m.reply(`✅ *Usuario muteado exitosamente*\n\n👤 @${correctJid.split('@')[0]}`, null, { mentions: [correctJid] });
-        
-        } else if (command === 'unmute') {
-            await conn.groupParticipantsUpdate(m.chat, [correctJid], 'unmute');
-            m.reply(`✅ *Usuario desmuteado exitosamente*\n\n👤 @${correctJid.split('@')[0]}`, null, { mentions: [correctJid] });
+        // Intentar la acción directamente con el user detectado
+        try {
+            if (command === 'mute') {
+                await conn.groupParticipantsUpdate(m.chat, [user], 'mute');
+                m.reply(`✅ *Usuario muteado exitosamente*\n\n👤 @${user.split('@')[0]}`, null, { mentions: [user] });
+            } else if (command === 'unmute') {
+                await conn.groupParticipantsUpdate(m.chat, [user], 'unmute');
+                m.reply(`✅ *Usuario desmuteado exitosamente*\n\n👤 @${user.split('@')[0]}`, null, { mentions: [user] });
+            }
+        } catch (actionError) {
+            console.log('Error en la acción:', actionError);
+            
+            // Si falla con el user original, intentar obtener el jid real
+            let groupMetadata = await conn.groupMetadata(m.chat);
+            let participants = groupMetadata.participants;
+            
+            // Buscar el participante que coincida
+            let participant = participants.find(p => p.id === user);
+            if (participant && participant.jid) {
+                console.log('Intentando con JID real:', participant.jid);
+                
+                if (command === 'mute') {
+                    await conn.groupParticipantsUpdate(m.chat, [participant.jid], 'mute');
+                    m.reply(`✅ *Usuario muteado exitosamente*\n\n👤 @${participant.jid.split('@')[0]}`, null, { mentions: [participant.jid] });
+                } else if (command === 'unmute') {
+                    await conn.groupParticipantsUpdate(m.chat, [participant.jid], 'unmute');
+                    m.reply(`✅ *Usuario desmuteado exitosamente*\n\n👤 @${participant.jid.split('@')[0]}`, null, { mentions: [participant.jid] });
+                }
+            } else {
+                throw actionError;
+            }
         }
 
     } catch (error) {
-        console.log('❌ Error en el comando:', error);
+        console.log('❌ Error final en el comando:', error);
         
         if (error.message.includes('403')) {
             m.reply('❌ *No tengo permisos de administrador para mutear/desmutear*');
