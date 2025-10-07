@@ -1,88 +1,63 @@
-// Comando para mutear y desmutear en Gata Bot-MD
-let commandMute = /^[!\/#\.]mute(?:\s+@?(\d+))?$/i;
-let commandUnmute = /^[!\/#\.]unmute(?:\s+@?(\d+))?$/i;
-
-export async function before(m, { conn, text, participants }) {
-    // Verificar si el mensaje tiene contenido y es en grupo
-    if (!m.message || !m.chat.endsWith('@g.us')) return;
-
-    const messageText = m.text || '';
-    
-    // Comando MUTE
-    if (commandMute.test(messageText)) {
-        let userId;
-        
-        console.log('Mute command detected'); // Debug
-        console.log('Quoted:', m.quoted); // Debug
-        console.log('Mentioned JIDs:', m.mentionedJid); // Debug
-        console.log('Text:', text); // Debug
-        
-        // Si es respuesta a un mensaje
-        if (m.quoted) {
-            userId = m.quoted.sender;
-            console.log('Using quoted sender:', userId); // Debug
-        } 
-        // Si se mencionó un usuario
-        else if (m.mentionedJid && m.mentionedJid.length > 0) {
-            userId = m.mentionedJid[0];
-            console.log('Using mentioned JID:', userId); // Debug
-        }
-        // Si se proporcionó ID en el texto
-        else if (text) {
-            const numMatch = text.match(/\d+/g);
-            if (numMatch) {
-                // Tomar el último número (evita capturar el del comando)
-                const num = numMatch[numMatch.length - 1];
-                userId = num + '@s.whatsapp.net';
-                console.log('Using number from text:', userId); // Debug
-            }
-        }
-        
-        if (!userId) {
-            return m.reply('❌ *Debes responder a un mensaje, mencionar a un usuario o proporcionar su número*\n\nEjemplos:\n- .mute respondiendo a un mensaje\n- .mute @usuario\n- .mute 584123456789');
-        }
-
-        try {
-            await conn.groupParticipantsUpdate(m.chat, [userId], 'mute');
-            m.reply('✅ *Usuario muteado exitosamente*');
-        } catch (error) {
-            console.log(error);
-            m.reply('❌ *Error al mutear usuario. Verifica que soy administrador*');
-        }
-        return true;
+let handler = async (m, { conn, usedPrefix, command, text }) => {
+    // Verificar que es un grupo
+    if (!m.chat.endsWith('@g.us')) {
+        return m.reply('❌ *Este comando solo funciona en grupos*');
     }
-    
-    // Comando UNMUTE
-    if (commandUnmute.test(messageText)) {
-        let userId;
-        
-        console.log('Unmute command detected'); // Debug
-        
-        if (m.quoted) {
-            userId = m.quoted.sender;
-        } 
-        else if (m.mentionedJid && m.mentionedJid.length > 0) {
-            userId = m.mentionedJid[0];
-        }
-        else if (text) {
-            const numMatch = text.match(/\d+/g);
-            if (numMatch) {
-                const num = numMatch[numMatch.length - 1];
-                userId = num + '@s.whatsapp.net';
-            }
-        }
-        
-        if (!userId) {
-            return m.reply('❌ *Debes responder a un mensaje, mencionar a un usuario o proporcionar su número*\n\nEjemplos:\n- .unmute respondiendo a un mensaje\n- .unmute @usuario\n- .unmute 584123456789');
+
+    // Verificar si hay mención, respuesta o texto
+    if (!text && !m.mentionedJid[0] && !m.quoted) {
+        return m.reply(`❌ *Debes mencionar, responder a un mensaje o proporcionar el número de un usuario*\n\nEjemplos:\n• ${usedPrefix}${command} @usuario\n• ${usedPrefix}${command} respondiendo a un mensaje\n• ${usedPrefix}${command} 584123456789`);
+    }
+
+    try {
+        // ✅ Obtener el usuario real (misma estructura que tu código)
+        let user = m.mentionedJid[0] 
+            ? m.mentionedJid[0] 
+            : m.quoted 
+                ? m.quoted.sender 
+                : text.match(/\d+/g) 
+                    ? text.match(/\d+/g)[0] + '@s.whatsapp.net'
+                    : false
+
+        if (!user) {
+            return m.reply('❌ *No se pudo identificar al usuario*');
         }
 
-        try {
-            await conn.groupParticipantsUpdate(m.chat, [userId], 'unmute');
-            m.reply('✅ *Usuario desmuteado exitosamente*');
-        } catch (error) {
-            console.log(error);
-            m.reply('❌ *Error al desmutear usuario. Verifica que soy administrador*');
+        // Verificar que el usuario existe en el grupo
+        let groupMetadata = await conn.groupMetadata(m.chat);
+        let participants = groupMetadata.participants;
+        let userExists = participants.find(p => p.id === user);
+        
+        if (!userExists) {
+            return m.reply('❌ *El usuario no está en este grupo*');
         }
-        return true;
+
+        // Ejecutar mute o unmute según el comando
+        if (command === 'mute') {
+            await conn.groupParticipantsUpdate(m.chat, [user], 'mute');
+            m.reply(`✅ *Usuario muteado exitosamente*\n\n👤 @${user.split('@')[0]}`, null, { mentions: [user] });
+        
+        } else if (command === 'unmute') {
+            await conn.groupParticipantsUpdate(m.chat, [user], 'unmute');
+            m.reply(`✅ *Usuario desmuteado exitosamente*\n\n👤 @${user.split('@')[0]}`, null, { mentions: [user] });
+        }
+
+    } catch (error) {
+        console.log('❌ Error en el comando:', error);
+        
+        if (error.message.includes('403')) {
+            m.reply('❌ *No tengo permisos de administrador para mutear/desmutear*');
+        } else if (error.message.includes('401')) {
+            m.reply('❌ *El usuario ya tiene ese estado*');
+        } else {
+            m.reply('❌ *Error al ejecutar el comando*');
+        }
     }
 }
+
+// Registrar ambos comandos
+handler.command = /^(mute|unmute)$/i
+handler.group = true
+handler.botAdmin = true
+handler.admin = true
+export default handler
