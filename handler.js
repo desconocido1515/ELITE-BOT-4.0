@@ -1330,7 +1330,7 @@ return
 if (m.text && user.banned && !isROwner) {
 if (user.antispam > 2) return
 m.reply(
-`🚫 *ESTÁ BANEADO(A), NO PUEDE USAR LOS COMANDOS*\n📑 *MOTIVO: ${user.messageSpam === 0 ? 'NO ESPECIFICADO' : user.messageSpam}*\n⚠️ \`\`\`SI ESTE BOT ES CUENTA OFICIAL Y TIENE EVIDENCIA QUE RESPALDE QUE ESTE MENSAJE ES UN ERROR, PUEDE EXPONER SU CASO EN:\`\`\`👉 *${ig}*\n👉 ${asistencia}`
+`🚫 *ESTÁ BANEADO(A), NO PUEDE USAR LOS COMANDOS*\n📑 *MOTIVO: ${user.messageSpam === 0 ? 'NO ESPECIFICADO' : user.messageSpam}*\n⚠️ \`\`\`SI ESTE BOT ES CUENTA OFICIAL Y TIENE EVIDENCIA QUE RESPALDE QUE ESTE MENSAJE ES UN ERROR, PUEDE EXPONER SU Caso. `
 )
 user.antispam++
 return
@@ -1406,7 +1406,7 @@ mediaUrl: null,
 mediaType: 1,
 description: null,
 title: gt,
-body: ' 😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
+body: '𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
 previewType: 0,
 thumbnail: gataImg,
 sourceUrl: accountsgb
@@ -1430,7 +1430,7 @@ mediaUrl: null,
 mediaType: 1,
 description: null,
 title: gt,
-body: ' 😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
+body: '𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
 previewType: 0,
 thumbnail: gataImg,
 sourceUrl: accountsgb
@@ -1452,7 +1452,7 @@ mediaUrl: null,
 mediaType: 1,
 description: null,
 title: gt,
-body: ' 😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
+body: '𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
 previewType: 0,
 thumbnail: gataImg,
 sourceUrl: accountsgb
@@ -1589,7 +1589,7 @@ if (opts['autoread']) await this.readMessages([m.key])
 if (settingsREAD.autoread2) await this.readMessages([m.key])
 //if (settingsREAD.autoread2 == 'true') await this.readMessages([m.key])
 
-if (db.data.chats[m.chat].reaction && m.text.match(/(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify)/gi)) {
+if (db.data.chats[m.chat].reaction && m.text.match(/(ción|and|bufy)/gi)) {
 let emot = pickRandom([
 '😀',
 '😃',
@@ -1737,28 +1737,7 @@ let emot = pickRandom([
 '🩵',
 '💙',
 '💜',
-'🖤',
-'🩶',
-'🤍',
-'🤎',
-'💔',
-'❤️‍🔥',
-'❤️‍🩹',
-'❣️',
-'💕',
-'💞',
-'💓',
-'💗',
-'💖',
-'💘',
-'💝',
-'🏳️‍🌈',
-'👊',
-'👀',
-'💋',
-'🫰',
-'💅',
-'👑',
+
 '🐣',
 '🐤',
 '🐈'
