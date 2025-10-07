@@ -23,13 +23,29 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
             return m.reply('❌ *No se pudo identificar al usuario*');
         }
 
+        console.log('Usuario a mutear:', user); // Debug
+
         // Verificar que el usuario existe en el grupo
         let groupMetadata = await conn.groupMetadata(m.chat);
         let participants = groupMetadata.participants;
+        
+        console.log('Participantes del grupo:', participants.map(p => p.id)); // Debug
+        
+        // Buscar el usuario en los participantes
         let userExists = participants.find(p => p.id === user);
         
+        console.log('Usuario encontrado:', userExists); // Debug
+
         if (!userExists) {
-            return m.reply('❌ *El usuario no está en este grupo*');
+            // Intentar formato alternativo
+            let userAlt = user.includes('-') ? user : user.replace('@s.whatsapp.net', '@c.us');
+            userExists = participants.find(p => p.id === userAlt || p.id === user);
+            
+            console.log('Búsqueda alternativa:', userExists); // Debug
+            
+            if (!userExists) {
+                return m.reply(`❌ *El usuario no está en este grupo*\n\nUsuario buscado: ${user}\nParticipantes: ${participants.length}`);
+            }
         }
 
         // Ejecutar mute o unmute según el comando
@@ -50,7 +66,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
         } else if (error.message.includes('401')) {
             m.reply('❌ *El usuario ya tiene ese estado*');
         } else {
-            m.reply('❌ *Error al ejecutar el comando*');
+            m.reply(`❌ *Error al ejecutar el comando:* ${error.message}`);
         }
     }
 }
